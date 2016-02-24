@@ -1,0 +1,26 @@
+--- lz4-java-1.3.0/build.xml	2015-07-21 17:13:09.230376711 +0200
++++ lz4-java-1.3.0/build.xml.lz4	2015-07-21 17:09:47.848152386 +0200
+@@ -171,14 +171,20 @@
+       outfile="${build}/jni/${platform}/${os.arch}/lz4-java"
+       outtype="shared">
+       <includepath path="${src}/xxhash" />
+-      <includepath path="${src}/lz4" />
++      <includepath path="/usr/include" />
+       <includepath path="${java.home}/../include" />
+       <includepath path="${java.home}/../include/${platform}/" />
+       <includepath path="${build}/jni-headers" />
+-      <fileset dir="${src}/lz4" includes="lz4.c, lz4hc.c" />
++      <!--fileset dir="${src}/lz4" includes="lz4.c, lz4hc.c" /-->
+       <fileset dir="${src}/xxhash" includes="xxhash.c" />
+       <fileset dir="${src}/jni" includes="*.c" />
+-      <linker />
++      <compilerarg value="-llz4"/>
++      <compilerarg value="-Wall"/>
++      <compilerarg value="-O2"/>
++      <linkerarg value="-O2"/>
++      <linkerarg value="-L${libdir}" />
++      <linkerarg value="-L${build}/objects" />
++      <linkerarg value="-llz4" location="end"/>
+     </cpptasks:cc>
+   </target>
+ 
