@@ -1,0 +1,301 @@
+diff -Nru lz4-java-1.3.0/src/test/net/jpountz/lz4/LZ4BlockStreamingTest.java lz4-java-1.3.0.junit.Assert/src/test/net/jpountz/lz4/LZ4BlockStreamingTest.java
+--- lz4-java-1.3.0/src/test/net/jpountz/lz4/LZ4BlockStreamingTest.java	2014-11-26 20:04:10.000000000 +0100
++++ lz4-java-1.3.0.junit.Assert/src/test/net/jpountz/lz4/LZ4BlockStreamingTest.java	2016-05-03 17:08:40.285741530 +0200
+@@ -207,11 +207,11 @@
+ 
+     final LZ4FastDecompressor decompressor = LZ4Factory.fastestInstance().fastDecompressor();
+     InputStream is = new LZ4BlockInputStream(open(compressed.toByteArray()), decompressor, checksum);
+-    assertFalse(is.markSupported());
++    org.junit.Assert.assertFalse(is.markSupported());
+     try {
+       is.mark(1);
+       is.reset();
+-      assertFalse(true);
++      org.junit.Assert.assertFalse(true);
+     } catch (IOException e) {
+       // OK
+     }
+@@ -235,8 +235,8 @@
+       }
+     }
+     is.close();
+-    assertEquals(data.length, read);
+-    assertArrayEquals(data, Arrays.copyOf(restored, read));
++    org.junit.Assert.assertEquals(data.length, read);
++    org.junit.Assert.assertArrayEquals(data, Arrays.copyOf(restored, read));
+ 
+     // test skip
+     final int offset = data.length <= 1 ? 0 : randomInt(data.length - 1);
+@@ -246,17 +246,17 @@
+     read = 0;
+     while (read < offset) {
+       final long skipped = is.skip(offset - read);
+-      assertTrue(skipped >= 0);
++      org.junit.Assert.assertTrue(skipped >= 0);
+       read += skipped;
+     }
+     read = 0;
+     while (read < length) {
+       final int r = is.read(restored, read, length - read);
+-      assertTrue(r >= 0);
++      org.junit.Assert.assertTrue(r >= 0);
+       read += r;
+     }
+     is.close();
+-    assertArrayEquals(Arrays.copyOfRange(data, offset, offset + length), Arrays.copyOfRange(restored, 0, length));
++    org.junit.Assert.assertArrayEquals(Arrays.copyOfRange(data, offset, offset + length), Arrays.copyOfRange(restored, 0, length));
+   }
+ 
+   @Test
+@@ -288,7 +288,7 @@
+     byte[] actual = new byte[testBytes.length];
+     in.read(actual);
+ 
+-    assertArrayEquals(testBytes, actual);
++    org.junit.Assert.assertArrayEquals(testBytes, actual);
+ 
+     in.close();
+     in.close();
+diff -Nru lz4-java-1.3.0/src/test/net/jpountz/lz4/LZ4Test.java lz4-java-1.3.0.junit.Assert/src/test/net/jpountz/lz4/LZ4Test.java
+--- lz4-java-1.3.0/src/test/net/jpountz/lz4/LZ4Test.java	2014-11-26 20:04:10.000000000 +0100
++++ lz4-java-1.3.0.junit.Assert/src/test/net/jpountz/lz4/LZ4Test.java	2016-05-03 17:08:40.290743645 +0200
+@@ -39,7 +39,7 @@
+   public void testMaxCompressedLength() {
+     final int len = randomBoolean() ? randomInt(16) : randomInt(1 << 30);
+     for (LZ4Compressor compressor : COMPRESSORS) {
+-      assertEquals(LZ4JNI.LZ4_compressBound(len), compressor.maxCompressedLength(len));
++      org.junit.Assert.assertEquals(LZ4JNI.LZ4_compressBound(len), compressor.maxCompressedLength(len));
+     }
+   }
+ 
+@@ -75,8 +75,8 @@
+     byte[] compressed = getCompressedWorstCase(decompressed);
+     byte[] restored = new byte[decompressed.length];
+     int cpLen = decompressor.decompress(compressed, 0, restored, 0, decompressed.length);
+-    assertEquals(compressed.length, cpLen);
+-    assertArrayEquals(decompressed, restored);
++    org.junit.Assert.assertEquals(compressed.length, cpLen);
++    org.junit.Assert.assertArrayEquals(decompressed, restored);
+   }
+ 
+   @Test
+@@ -93,8 +93,8 @@
+     byte[] compressed = getCompressedWorstCase(decompressed);
+     byte[] restored = new byte[decompressed.length];
+     int uncpLen = decompressor.decompress(compressed, 0, compressed.length, restored, 0);
+-    assertEquals(decompressed.length, uncpLen);
+-    assertArrayEquals(decompressed, restored);
++    org.junit.Assert.assertEquals(decompressed.length, uncpLen);
++    org.junit.Assert.assertArrayEquals(decompressed, restored);
+   }
+ 
+   @Test
+@@ -130,8 +130,8 @@
+     final int compressedLen2 = tester.compress(compressor,
+         tester.copyOf(data), off, len,
+         compressed2, 0, compressedLen);
+-    assertEquals(compressedLen, compressedLen2);
+-    assertArrayEquals(
++    org.junit.Assert.assertEquals(compressedLen, compressedLen2);
++    org.junit.Assert.assertArrayEquals(
+         tester.copyOf(compressed, 0, compressedLen),
+         tester.copyOf(compressed2, 0, compressedLen));
+ 
+@@ -141,21 +141,21 @@
+       tester.compress(compressor,
+           tester.copyOf(data), off, len,
+           compressed3, 0, compressedLen - 1);
+-      fail();
++      org.junit.Assert.fail();
+     } catch (LZ4Exception e) {
+       // OK
+     }
+ 
+     // test decompression
+     final T restored = tester.allocate(len);
+-    assertEquals(compressedLen, tester.decompress(decompressor, compressed, 0, restored, 0, len));
+-    assertArrayEquals(Arrays.copyOfRange(data, off, off + len), tester.copyOf(restored, 0, len));
++    org.junit.Assert.assertEquals(compressedLen, tester.decompress(decompressor, compressed, 0, restored, 0, len));
++    org.junit.Assert.assertArrayEquals(Arrays.copyOfRange(data, off, off + len), tester.copyOf(restored, 0, len));
+ 
+     if (len > 0) {
+       // dest is too small
+       try {
+         tester.decompress(decompressor, compressed, 0, restored, 0, len - 1);
+-        fail();
++        org.junit.Assert.fail();
+       } catch (LZ4Exception e) {
+         // OK
+       }
+@@ -165,7 +165,7 @@
+     final T restored2 = tester.allocate(len+1);
+     try {
+       final int cpLen = tester.decompress(decompressor, compressed, 0, restored2, 0, len + 1);
+-      fail("compressedLen=" + cpLen);
++      org.junit.Assert.fail("compressedLen=" + cpLen);
+     } catch (LZ4Exception e) {
+       // OK
+     }
+@@ -173,16 +173,16 @@
+     // try decompression when only the size of the compressed buffer is known
+     if (len > 0) {
+       tester.fill(restored, randomByte());
+-      assertEquals(len, tester.decompress(decompressor2, compressed, 0, compressedLen, restored, 0, len));
++      org.junit.Assert.assertEquals(len, tester.decompress(decompressor2, compressed, 0, compressedLen, restored, 0, len));
+       tester.fill(restored, randomByte());
+     } else {
+-      assertEquals(0, tester.decompress(decompressor2, compressed, 0, compressedLen, tester.allocate(1), 0, 1));
++      org.junit.Assert.assertEquals(0, tester.decompress(decompressor2, compressed, 0, compressedLen, tester.allocate(1), 0, 1));
+     }
+ 
+     // over-estimated compressed length
+     try {
+       final int decompressedLen = tester.decompress(decompressor2, compressed, 0, compressedLen + 1, tester.allocate(len + 100), 0, len + 100);
+-      fail("decompressedLen=" + decompressedLen);
++      org.junit.Assert.fail("decompressedLen=" + decompressedLen);
+     } catch (LZ4Exception e) {
+       // OK
+     }
+@@ -191,7 +191,7 @@
+     try {
+       final int decompressedLen = tester.decompress(decompressor2, compressed, 0, compressedLen - 1, tester.allocate(len + 100), 0, len + 100);
+       if (!(decompressor2 instanceof LZ4JNISafeDecompressor)) {
+-        fail("decompressedLen=" + decompressedLen);
++        org.junit.Assert.fail("decompressedLen=" + decompressedLen);
+       }
+     } catch (LZ4Exception e) {
+       // OK
+@@ -278,7 +278,7 @@
+       try {
+         // it is invalid to end with a match, should be at least 5 literals
+         decompressor.decompress(invalid, 0, new byte[decompressedLength], 0, decompressedLength);
+-        assertTrue(decompressor.toString(), false);
++        org.junit.Assert.assertTrue(decompressor.toString(), false);
+       } catch (LZ4Exception e) {
+         // OK
+       }
+@@ -288,7 +288,7 @@
+       try {
+         // it is invalid to end with a match, should be at least 5 literals
+         decompressor.decompress(invalid, 0, invalid.length, new byte[20], 0);
+-        assertTrue(false);
++        org.junit.Assert.assertTrue(false);
+       } catch (LZ4Exception e) {
+         // OK
+       }
+@@ -308,7 +308,7 @@
+         try {
+           // it is invalid to end with a match, should be at least 5 literals
+           decompressor.decompress(invalid, 0, new byte[20], 0, 20);
+-          assertTrue(decompressor.toString(), false);
++          org.junit.Assert.assertTrue(decompressor.toString(), false);
+         } catch (LZ4Exception e) {
+           // OK
+         }
+@@ -318,7 +318,7 @@
+         try {
+           // it is invalid to end with a match, should be at least 5 literals
+           decompressor.decompress(invalid, 0, invalid.length, new byte[20], 0);
+-          assertTrue(false);
++          org.junit.Assert.assertTrue(false);
+         } catch (LZ4Exception e) {
+           // OK
+         }
+@@ -333,7 +333,7 @@
+       ByteBuffer out = Tester.BYTE_BUFFER.allocate(100).asReadOnlyBuffer();
+       try {
+         compressor.compress(in, out);
+-        fail();
++        org.junit.Assert.fail();
+       } catch (ReadOnlyBufferException e) {
+         // ok
+       }
+@@ -343,7 +343,7 @@
+       ByteBuffer out = Tester.BYTE_BUFFER.allocate(100).asReadOnlyBuffer();
+       try {
+         decompressor.decompress(in, out);
+-        fail();
++        org.junit.Assert.fail();
+       } catch (ReadOnlyBufferException e) {
+         // ok
+       }
+@@ -354,7 +354,7 @@
+       out.limit(2);
+       try {
+         decompressor.decompress(in, out);
+-        fail();
++        org.junit.Assert.fail();
+       } catch (ReadOnlyBufferException e) {
+         // ok
+       }
+@@ -457,7 +457,7 @@
+       }
+       final Sequence sequence1 = readSequence(expected, off);
+       final Sequence sequence2 = readSequence(actual, off);
+-      assertEquals(message + ", off=" + off + ", decompressedOff=" + decompressedOff, sequence1, sequence2);
++      org.junit.Assert.assertEquals(message + ", off=" + off + ", decompressedOff=" + decompressedOff, sequence1, sequence2);
+       off += sequence1.length;
+       decompressedOff += sequence1.literalLen + sequence1.matchLen;
+     }
+diff -Nru lz4-java-1.3.0/src/test/net/jpountz/xxhash/XXHash32Test.java lz4-java-1.3.0.junit.Assert/src/test/net/jpountz/xxhash/XXHash32Test.java
+--- lz4-java-1.3.0/src/test/net/jpountz/xxhash/XXHash32Test.java	2014-11-26 20:04:10.000000000 +0100
++++ lz4-java-1.3.0.junit.Assert/src/test/net/jpountz/xxhash/XXHash32Test.java	2016-05-03 17:08:40.278738569 +0200
+@@ -129,12 +129,12 @@
+     final int ref = XXHashFactory.nativeInstance().hash32().hash(buf, off, len, seed);
+     for (XXHash32 hash : INSTANCES) {
+       final int h = hash.hash(buf, off, len, seed);
+-      assertEquals(hash.toString(), ref, h);
++      org.junit.Assert.assertEquals(hash.toString(), ref, h);
+       final ByteBuffer copy = copyOf(buf, off, len);
+       final int h2 = hash.hash(copy, off, len, seed);
+-      assertEquals(off, copy.position());
+-      assertEquals(len, copy.remaining());
+-      assertEquals(hash.toString(), ref, h2);
++      org.junit.Assert.assertEquals(off, copy.position());
++      org.junit.Assert.assertEquals(len, copy.remaining());
++      org.junit.Assert.assertEquals(hash.toString(), ref, h2);
+     }
+   }
+ 
+@@ -155,8 +155,8 @@
+       hash1.update(bytes, off, len);
+       hash2.update(bytes, off, len);
+       hash3.update(bytes, off, len);
+-      assertEquals(hash2.toString() + " " + totalLen, hash1.getValue(), hash2.getValue());
+-      assertEquals(hash3.toString() + " " + totalLen, hash1.getValue(), hash3.getValue());
++      org.junit.Assert.assertEquals(hash2.toString() + " " + totalLen, hash1.getValue(), hash2.getValue());
++      org.junit.Assert.assertEquals(hash3.toString() + " " + totalLen, hash1.getValue(), hash3.getValue());
+       totalLen += len;
+     }
+   }
+diff -Nru lz4-java-1.3.0/src/test/net/jpountz/xxhash/XXHash64Test.java lz4-java-1.3.0.junit.Assert/src/test/net/jpountz/xxhash/XXHash64Test.java
+--- lz4-java-1.3.0/src/test/net/jpountz/xxhash/XXHash64Test.java	2014-11-26 20:04:10.000000000 +0100
++++ lz4-java-1.3.0.junit.Assert/src/test/net/jpountz/xxhash/XXHash64Test.java	2016-05-03 17:08:40.278738569 +0200
+@@ -134,12 +134,12 @@
+     final long ref = XXHashFactory.nativeInstance().hash64().hash(buf, off, len, seed);
+     for (XXHash64 hash : INSTANCES) {
+       final long h = hash.hash(buf, off, len, seed);
+-      assertEquals(hash.toString(), ref, h);
++      org.junit.Assert.assertEquals(hash.toString(), ref, h);
+       final ByteBuffer copy = copyOf(buf, off, len);
+       final long h2 = hash.hash(copy, off, len, seed);
+-      assertEquals(off, copy.position());
+-      assertEquals(len, copy.remaining());
+-      assertEquals(hash.toString(), ref, h2);
++      org.junit.Assert.assertEquals(off, copy.position());
++      org.junit.Assert.assertEquals(len, copy.remaining());
++      org.junit.Assert.assertEquals(hash.toString(), ref, h2);
+     }
+   }
+ 
+@@ -160,8 +160,8 @@
+       hash1.update(bytes, off, len);
+       hash2.update(bytes, off, len);
+       hash3.update(bytes, off, len);
+-      assertEquals(hash2.toString() + " " + totalLen, hash1.getValue(), hash2.getValue());
+-      assertEquals(hash3.toString() + " " + totalLen, hash1.getValue(), hash3.getValue());
++      org.junit.Assert.assertEquals(hash2.toString() + " " + totalLen, hash1.getValue(), hash2.getValue());
++      org.junit.Assert.assertEquals(hash3.toString() + " " + totalLen, hash1.getValue(), hash3.getValue());
+       totalLen += len;
+     }
+   }

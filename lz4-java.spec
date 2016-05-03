@@ -5,7 +5,7 @@
 
 Name:          lz4-java
 Version:       1.3.0
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       LZ4 compression for Java
 # GPL: src/xxhash/bench.c
 # src/lz4/programs
@@ -19,6 +19,8 @@ Source0:       https://github.com/jpountz/lz4-java/archive/%{version}.tar.gz
 # Add support for system mvel2
 # Fix doclint/encoding in javadoc task
 Patch0:        lz4-java-1.3.0-build.patch
+# Use randomizedtesting <= 2.1.3
+Patch1:        lz4-java-1.3.0-junit_Assert.patch
 
 # Build tools
 BuildRequires: ant
@@ -78,6 +80,7 @@ find -name '*.dylib' -print -delete
 find -name '*.so' -print -delete
 
 %patch0 -p1
+%patch1 -p1
 
 cp -p src/xxhash/LICENSE LICENSE.xxhash
 cp -p src/lz4/LICENSE lz4_LICENSE
@@ -85,14 +88,6 @@ cp -p src/lz4/LICENSE lz4_LICENSE
 # Fix OSGi manifest entries
 echo "Export-Package: net.jpountz.*,!linux.*" >> lz4.bnd
 sed -i '/packages.version/d' lz4.bnd
-
-# Use randomizedtesting <= 2.1.3
-rm -r \
- src/test/net/jpountz/lz4/AbstractLZ4Test.java \
- src/test/net/jpountz/lz4/LZ4BlockStreamingTest.java \
- src/test/net/jpountz/lz4/LZ4Test.java \
- src/test/net/jpountz/xxhash/XXHash32Test.java \
- src/test/net/jpountz/xxhash/XXHash64Test.java
 
 %build
 
@@ -120,6 +115,9 @@ ant %build_opts test
 %license LICENSE.txt
 
 %changelog
+* Tue May 03 2016 gil cattaneo <puntogil@libero.it> 1.3.0-3
+- fix test suite
+
 * Tue May 03 2016 gil cattaneo <puntogil@libero.it> 1.3.0-2
 - unbundle lz4 code (lz4-java issues#74)
 
