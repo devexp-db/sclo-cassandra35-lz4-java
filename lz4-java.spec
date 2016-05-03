@@ -5,10 +5,12 @@
 
 Name:          lz4-java
 Version:       1.3.0
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       LZ4 compression for Java
 # GPL: src/xxhash/bench.c
+# src/lz4/programs
 # BSD: src/xxhash/xxhash.c src/xxhash/xxhash.h
+# src/lz4
 License:       ASL 2.0 and (BSD and GPLv2+)
 URL:           https://github.com/jpountz/lz4-java
 Source0:       https://github.com/jpountz/lz4-java/archive/%{version}.tar.gz
@@ -17,10 +19,6 @@ Source0:       https://github.com/jpountz/lz4-java/archive/%{version}.tar.gz
 # Add support for system mvel2
 # Fix doclint/encoding in javadoc task
 Patch0:        lz4-java-1.3.0-build.patch
-# Add system lz4 support
-Patch1:        lz4-java-1.3.0-system-lz4.patch
-# Disable some random tests failure
-Patch2:        lz4-java-1.3.0-test.patch
 
 # Build tools
 BuildRequires: ant
@@ -30,7 +28,6 @@ BuildRequires: cpptasks
 BuildRequires: ivy-local
 BuildRequires: java-devel
 BuildRequires: javapackages-local
-BuildRequires: lz4-devel
 BuildRequires: mvel
 BuildRequires: objectweb-asm
 BuildRequires: randomizedtesting-junit4-ant
@@ -38,12 +35,13 @@ BuildRequires: randomizedtesting-junit4-ant
 BuildRequires: bea-stax-api
 BuildRequires: xerces-j2
 BuildRequires: apache-parent
-Requires:      lz4%{?_isa}
-# Remove when libxxhash become available
-# use https://github.com/Cyan4973/xxHash r37
+# https://github.com/jpountz/lz4-java/issues/74
+# lz4 >= r128 is incompatible with lz4-java apparently
+# due to differences in the framing implementation
+Provides:      bundled(lz4) = r122
 # FPC ticket Bundled Library Exception
 # https://fedorahosted.org/fpc/ticket/603
-Provides:      bundled(libxxhash) = 37
+Provides:      bundled(libxxhash) = r37
 
 %description
 LZ4 compression for Java, based on Yann Collet's work.
@@ -80,12 +78,9 @@ find -name '*.dylib' -print -delete
 find -name '*.so' -print -delete
 
 %patch0 -p1
-%patch1 -p1
-rm -r src/lz4
-%patch2 -p1
-sed -i 's|${libdir}|%{_libdir}|' build.xml
-# TODO src/xxhash
+
 cp -p src/xxhash/LICENSE LICENSE.xxhash
+cp -p src/lz4/LICENSE lz4_LICENSE
 
 # Fix OSGi manifest entries
 echo "Export-Package: net.jpountz.*,!linux.*" >> lz4.bnd
@@ -119,11 +114,14 @@ ant %build_opts test
 
 %files -f .mfiles
 %doc CHANGES.md README.md
-%license LICENSE.txt LICENSE.xxhash
+%license LICENSE.txt LICENSE.xxhash lz4_LICENSE
 
 %files javadoc -f .mfiles-javadoc
 %license LICENSE.txt
 
 %changelog
+* Tue May 03 2016 gil cattaneo <puntogil@libero.it> 1.3.0-2
+- unbundle lz4 code (lz4-java issues#74)
+
 * Mon Jul 20 2015 gil cattaneo <puntogil@libero.it> 1.3.0-1
 - initial rpm
