@@ -5,7 +5,7 @@
 
 Name:          lz4-java
 Version:       1.3.0
-Release:       3%{?dist}
+Release:       4%{?dist}
 Summary:       LZ4 compression for Java
 # GPL: src/xxhash/bench.c
 # src/lz4/programs
@@ -101,8 +101,8 @@ bnd wrap -p lz4.bnd -o dist/lz4-%{version}.jar --version %{version} dist/lz4.jar
 %mvn_artifact dist/lz4-%{version}.pom dist/lz4-%{version}.jar
 %mvn_install -J build/docs
 
-%ifnarch %{arm}
-# Execution time total: 3 hours 37 minutes 14 seconds ... waste of time
+%ifnarch %{arm} aarch64
+# Execution time total: 3 hours 37 minutes 14 seconds ... waste of time with
 %check
 ant %build_opts test
 %endif
@@ -115,6 +115,9 @@ ant %build_opts test
 %license LICENSE.txt
 
 %changelog
+* Mon Sep 12 2016 gil cattaneo <puntogil@libero.it> 1.3.0-4
+- exclude aarch64
+
 * Tue May 03 2016 gil cattaneo <puntogil@libero.it> 1.3.0-3
 - fix test suite
 
