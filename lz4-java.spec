@@ -102,7 +102,9 @@ bnd wrap -p lz4.bnd -o dist/lz4-%{version}.jar --version %{version} dist/lz4.jar
 %mvn_install -J build/docs
 
 %ifnarch %{arm} aarch64
-# Execution time total: 3 hours 37 minutes 14 seconds ... waste of time with
+# FIXME - tests fail on aarch64 for unknown reason.
+# On armhfp tests are skipped due to poor JVM performance ("Execution
+# time total: 3 hours 37 minutes 14 seconds" ... waste of time)
 %check
 ant %build_opts test
 %endif
