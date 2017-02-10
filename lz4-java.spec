@@ -5,7 +5,7 @@
 
 Name:          lz4-java
 Version:       1.3.0
-Release:       4%{?dist}
+Release:       5%{?dist}
 Summary:       LZ4 compression for Java
 # GPL: src/xxhash/bench.c
 # src/lz4/programs
@@ -117,6 +117,9 @@ ant %build_opts test
 %license LICENSE.txt
 
 %changelog
+* Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1.3.0-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
+
 * Mon Sep 12 2016 gil cattaneo <puntogil@libero.it> 1.3.0-4
 - exclude aarch64
 
