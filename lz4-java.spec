@@ -5,7 +5,7 @@
 
 Name:          lz4-java
 Version:       1.3.0
-Release:       5%{?dist}
+Release:       6%{?dist}
 Summary:       LZ4 compression for Java
 # GPL: src/xxhash/bench.c
 # src/lz4/programs
@@ -101,7 +101,7 @@ bnd wrap -p lz4.bnd -o dist/lz4-%{version}.jar --version %{version} dist/lz4.jar
 %mvn_artifact dist/lz4-%{version}.pom dist/lz4-%{version}.jar
 %mvn_install -J build/docs
 
-%ifnarch %{arm} aarch64
+%ifnarch %{arm} aarch64 ppc64
 # FIXME - tests fail on aarch64 for unknown reason.
 # On armhfp tests are skipped due to poor JVM performance ("Execution
 # time total: 3 hours 37 minutes 14 seconds" ... waste of time)
@@ -117,6 +117,9 @@ ant %build_opts test
 %license LICENSE.txt
 
 %changelog
+* Sun Feb 19 2017 gil cattaneo <puntogil@libero.it> 1.3.0-6
+- disable test suite on ppc64
+
 * Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1.3.0-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
 
