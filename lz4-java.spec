@@ -1,42 +1,45 @@
+%{?scl:%scl_package lz4-java}
+%{!?scl:%global pkg_name %{name}}
+
 # empty debuginfo
 %global debug_package %nil
 
-%global build_opts -Doffline=true -Divy.mode=local -Divysettings.xml=/etc/ivy/ivysettings.xml -Divy.revision=%{version}
+%global build_opts -Doffline=true -Divy.mode=local -Divy.settings.file=%{_sysconfdir_java_common}/ivy/ivysettings.xml -d -Divy.revision=%{version}
 
-Name:          lz4-java
-Version:       1.3.0
-Release:       6%{?dist}
-Summary:       LZ4 compression for Java
+Name:		%{?scl_prefix}lz4-java
+Version:	1.3.0
+Release:	7%{?dist}
+Summary:	LZ4 compression for Java
 # GPL: src/xxhash/bench.c
 # src/lz4/programs
 # BSD: src/xxhash/xxhash.c src/xxhash/xxhash.h
 # src/lz4
-License:       ASL 2.0 and (BSD and GPLv2+)
-URL:           https://github.com/jpountz/lz4-java
-Source0:       https://github.com/jpountz/lz4-java/archive/%{version}.tar.gz
+License:	ASL 2.0 and (BSD and GPLv2+)
+URL:		https://github.com/jpountz/%{pkg_name}
+Source0:	https://github.com/jpountz/%{pkg_name}/archive/%{version}.tar.gz
 
 # Disable maven-ant-tasks and old aqute-bnd (1.50.x) support
 # Add support for system mvel2
 # Fix doclint/encoding in javadoc task
-Patch0:        lz4-java-1.3.0-build.patch
+Patch0:		%{pkg_name}-%{version}-build.patch
 # Use randomizedtesting <= 2.1.3
-Patch1:        lz4-java-1.3.0-junit_Assert.patch
+Patch1:		%{pkg_name}-%{version}-junit_Assert.patch
 
-# Build tools
-BuildRequires: ant
-BuildRequires: ant-junit
-BuildRequires: aqute-bnd
-BuildRequires: cpptasks
-BuildRequires: ivy-local
-BuildRequires: java-devel
-BuildRequires: javapackages-local
-BuildRequires: mvel
-BuildRequires: objectweb-asm
-BuildRequires: randomizedtesting-junit4-ant
-# Other missing build deps
-BuildRequires: bea-stax-api
-BuildRequires: xerces-j2
-BuildRequires: apache-parent
+BuildRequires:	%{?scl_prefix_java_common}ant
+BuildRequires:	%{?scl_prefix_java_common}ant-junit
+BuildRequires:	%{?scl_prefix_java_common}objectweb-asm%{?scl:5}
+BuildRequires:	%{?scl_prefix_java_common}bea-stax-api
+BuildRequires:	%{?scl_prefix_java_common}xerces-j2
+BuildRequires:	%{?scl_prefix_maven}aqute-bnd
+BuildRequires:	%{?scl_prefix_maven}ivy-local
+BuildRequires:	%{?scl_prefix_maven}javapackages-local
+BuildRequires:	%{?scl_prefix_maven}apache-parent
+BuildRequires:	%{?scl_prefix}cpptasks
+BuildRequires:	%{?scl_prefix}mvel
+# test dependency n/a in scl
+%{!?scl:BuildRequires:	randomizedtesting-junit4-ant}
+%{?scl:Requires: %scl_runtime}
+
 # https://github.com/jpountz/lz4-java/issues/74
 # lz4 >= r128 is incompatible with lz4-java apparently
 # due to differences in the framing implementation
@@ -67,14 +70,14 @@ same compression format, are very fast to decompress and can be
 decompressed by the same decompressor instance.
 
 %package javadoc
-Summary:       Javadoc for %{name}
-BuildArch:     noarch
+Summary:	Javadoc for %{name}
+BuildArch:	noarch
 
 %description javadoc
 This package contains javadoc for %{name}.
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q -n %{pkg_name}-%{version}
 # Cleanup
 find -name '*.dylib' -print -delete
 find -name '*.so' -print -delete
@@ -89,24 +92,36 @@ cp -p src/lz4/LICENSE lz4_LICENSE
 echo "Export-Package: net.jpountz.*,!linux.*" >> lz4.bnd
 sed -i '/packages.version/d' lz4.bnd
 
-%build
+%{?scl:scl enable %{scl_maven} %{scl} - << "EOF"}
+# remove n/a test dependency in SCL package
+%{?scl:%pom_remove_dep com.carrotsearch.randomizedtesting:junit4-ant}
+%{?scl:EOF}
 
+%build
+%{?scl:scl enable %{scl_maven} %{scl} - << "EOF"}
+%{?scl:export XMVN_HOME=/opt/rh/rh-maven33/root/usr/share/xmvn}
 ant %build_opts -Divy.pom.version=%{version} jar docs makepom
 
 # bunlde task use old bnd wrap configuration, is not usable
-bnd wrap -p lz4.bnd -o dist/lz4-%{version}.jar --version %{version} dist/lz4.jar
+%{!?scl:bnd wrap -p lz4.bnd -o dist/lz4-%{version}.jar --version %{version} dist/lz4.jar}
+# bnd command not found in scl
+%{?scl:mv dist/lz4.jar dist/lz4-%{version}.jar}
+%{?scl:EOF}
 
 %install
+%{?scl:scl enable %{scl_maven} %{scl} - << "EOF"}
 %mvn_file net.jpountz.lz4:lz4 lz4
 %mvn_artifact dist/lz4-%{version}.pom dist/lz4-%{version}.jar
 %mvn_install -J build/docs
+%{?scl:EOF}
 
 %ifnarch %{arm} aarch64 ppc64
 # FIXME - tests fail on aarch64 for unknown reason.
 # On armhfp tests are skipped due to poor JVM performance ("Execution
 # time total: 3 hours 37 minutes 14 seconds" ... waste of time)
 %check
-ant %build_opts test
+# skip tests in SCL package
+%{!?scl:ant %build_opts test}
 %endif
 
 %files -f .mfiles
@@ -117,6 +132,9 @@ ant %build_opts test
 %license LICENSE.txt
 
 %changelog
+* Thu Feb 23 2017 Tomas Repik <trepik@redhat.com> - 1.3.0-7
+- scl conversion
+
 * Sun Feb 19 2017 gil cattaneo <puntogil@libero.it> 1.3.0-6
 - disable test suite on ppc64
 
